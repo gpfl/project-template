@@ -1,0 +1,92 @@
+#!/bin/sh
+
+# script/bootstrap: Resolve all dependencies that the application requires to
+#                   run.
+
+check_installed()
+{
+which $1 &> /dev/null
+if [[ $? != 0 ]]; then
+    printf "  \e[31;1m❌ $1 is not installed\n\e[0m"
+    return 1
+else
+    printf "  \e[32;1m✅ $1 is installed\n\e[0m"
+    return 0
+fi
+}
+
+
+printf '\n\e[0;1m bootstrap script\n\e[0m'
+printf ' ------------------------ \n'
+
+check_installed brew
+brew_check=$?
+check_installed pyenv
+pyenv_check=$?
+check_installed poetry
+poetry_check=$?
+printf ' ------------------------ \n'
+
+sleep 2
+
+if [[ brew_check -ne 0 ]]; then
+    printf "\ndo you want to install brew? (y/n) "
+    read answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        echo -e "Yes\n"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        sleep 2
+    else
+        echo -e "No\n"
+    fi
+fi
+
+
+if [[ pyenv_check -ne 0 ]]; then
+    printf "\ndo you want to install pyenv? (y/n) "
+    read answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        echo -e "Yes\n"
+
+        # brew update and install pyenv
+        brew update
+        brew install pyenv
+
+        # set up your shell environment for pyenv
+        echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+        echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+        echo 'eval "$(pyenv init -)"' >> ~/.zshrc
+
+        sleep 2
+    else
+        echo -e "No\n"
+    fi
+fi
+
+
+# source zshrc to add pyenv to PATH
+source ~/.zshrc
+
+# which python version
+printf "\nselect a \e[1mpython version\e[0m for the project (e.g, 3.10): "
+read pyans
+echo "$pyans" > .python-version
+printf "\n"
+# run pyenv to install the .python-version
+pyenv install
+
+if [[ poetry_check -ne 0 ]]; then
+    printf "\ndo you want to install poetry? (y/n) "
+    read answer
+    if [ "$answer" != "${answer#[Yy]}" ] ;then
+        echo -e "Yes\n"
+
+        # install poetry using pip
+        pip install poetry
+
+        sleep 2
+    else
+        echo -e "No\n"
+    fi
+fi

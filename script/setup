@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# script/setup: Resolve all dependencies that the application requires to
+#                   run.
+
+cd "$(dirname "$0")/.."
+
+. ./script/bootstrap
+
+printf '\n \n\e[0;1m bootstrap python script\n\e[0m'
+printf ' ---------------------------- \n'
+
+python -m script.bootstrap
+
+# poetry config virtualenvs.in-project true
+# poetry install --no-root
