@@ -22,7 +22,9 @@ COLORS = {
 }
 
 
-GITIGNORE = "https://www.toptal.com/developers/gitignore/api/osx,python,dotenv,jupyternotebooks"
+GITIGNORE = (
+    "https://www.toptal.com/developers/gitignore/api/osx,python,dotenv,jupyternotebooks"
+)
 
 
 def color_print(text, color, end="\n"):
@@ -97,7 +99,8 @@ def create_new_poetry_project():
     )
 
     subprocess.check_call(
-        ["poetry", "config", "virtualenvs.in-project", "true"], stdout=subprocess.DEVNULL
+        ["poetry", "config", "virtualenvs.in-project", "true"],
+        stdout=subprocess.DEVNULL,
     )
 
     if git_root_folder_name:
