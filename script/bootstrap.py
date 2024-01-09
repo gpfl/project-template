@@ -114,13 +114,18 @@ def get_gitignore():
 def config_mkdocs(git_root_folder_name, repo_url):
     """Creating a mkdocs project and configuring the yaml file"""
     # creating mkdocs yaml and folder
-    subprocess.check_call(["mkdocs", "new", "."], stdout=subprocess.DEVNULL)
+    subprocess.check_call(
+        ["poetry", "run", "mkdocs", "new", "."], stdout=subprocess.DEVNULL
+    )
 
     mkdocs_config = f"""
     site_name: {git_root_folder_name}
     repo_url: {repo_url}
 
     Home: index.md
+
+    theme:
+      name: readthedocs
     """
 
     with open("mkdocs.yml", "w") as mkdocs:
