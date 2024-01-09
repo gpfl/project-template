@@ -6,6 +6,7 @@ This script is used to bootstrap the project. It will:
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -90,13 +91,47 @@ def get_git_root_folder_name():
 
 
 @print_progress
-def create_new_poetry_project():
-    """Initialize a poetry project and add pytest"""
-    git_root_folder_name = get_git_root_folder_name()
+def get_repo_url():
+    """Getting the github repo url"""
+    git_remote = subprocess.check_output(["git", "remote", "-v"]).decode("utf-8")
+    url_pattern = re.compile(r"(https://\S+?)\.git\b")
+    match = url_pattern.search(git_remote)
+    if match:
+        return match.group(1)
+    else:
+        return None
 
+
+@print_progress
+def get_gitignore():
+    """Creating the .gitignore file"""
     subprocess.check_call(
         ["curl", "-o", ".gitignore", GITIGNORE], stdout=subprocess.DEVNULL
     )
+
+
+@print_progress
+def config_mkdocs(git_root_folder_name, repo_url):
+    # creating mkdocs yaml and folder
+    subprocess.check_call(["mkdocs", "new", "."], stdout=subprocess.DEVNULL)
+
+    mkdocs_config = f"""
+    site_name: {git_root_folder_name}
+    repo_url: {repo_url}
+
+    Home: index.md
+    """
+
+    with open("mkdocs.yml", "w") as mkdocs:
+        mkdocs.write(mkdocs_config)
+
+
+@print_progress
+def create_new_poetry_project():
+    """Initialize a poetry project, .gitignore and mkdocs"""
+    git_root_folder_name = get_git_root_folder_name()
+
+    get_gitignore()
 
     subprocess.check_call(
         ["poetry", "config", "virtualenvs.in-project", "true"],
@@ -119,9 +154,9 @@ def create_new_poetry_project():
             shutil.copy2(os.path.join(temp_folder_name, file_name), file_name)
     shutil.rmtree(temp_folder_name)
 
-    subprocess.check_call(
-        ["poetry", "add", "--group", "test", "pytest"], stdout=subprocess.DEVNULL
-    )
+    # mkdocs
+    repo_url = get_repo_url()
+    config_mkdocs(git_root_folder_name, repo_url)
 
 
 def main():
