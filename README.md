@@ -6,13 +6,17 @@ Heavily based on [armand-sauzay/python-template](https://github.com/armand-sauza
 
 # Usage
 
-```
-# create your repo using this as template
+Create your repo using this repo as a template.
+```bash
 gh repo create <your-user>/<your-repo> --template gpfl/project-template
+```
 
-# clone your repo
+Clone your repo locally
+```bash
 gh repo clone <your-user>/<your-repo>
+```
 
-# run the setup script
+Run the setup script
+```bash
 . ./script/setup
 ```
