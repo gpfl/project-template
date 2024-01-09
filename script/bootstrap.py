@@ -112,6 +112,7 @@ def get_gitignore():
 
 @print_progress
 def config_mkdocs(git_root_folder_name, repo_url):
+    """Creating a mkdocs project and configuring the yaml file"""
     # creating mkdocs yaml and folder
     subprocess.check_call(["mkdocs", "new", "."], stdout=subprocess.DEVNULL)
 
@@ -124,6 +125,53 @@ def config_mkdocs(git_root_folder_name, repo_url):
 
     with open("mkdocs.yml", "w") as mkdocs:
         mkdocs.write(mkdocs_config)
+
+
+@print_progress
+def install_basic_dependencies():
+    """Installing basic dependencies"""
+    subprocess.check_call(
+        ["poetry", "add", "mlflow", "pandas", "numpy"], stdout=subprocess.DEVNULL
+    )
+
+
+@print_progress
+def install_test_dependencies():
+    """Installing test dependencies"""
+    subprocess.check_call(
+        ["poetry", "add", "--group", "test", "pytest"], stdout=subprocess.DEVNULL
+    )
+
+
+@print_progress
+def install_lint_dependencies():
+    """Installing lint dependencies"""
+    subprocess.check_call(
+        ["poetry", "add", "--group", "lint", "ruff", "mypy"], stdout=subprocess.DEVNULL
+    )
+
+
+@print_progress
+def install_dev_dependencies():
+    """Installing dev dependencies"""
+    subprocess.check_call(
+        ["poetry", "add", "--group", "dev", "python-dotenv", "jupyter", "jupyterlab"],
+        stdout=subprocess.DEVNULL,
+    )
+
+
+@print_progress
+def install_docs_dependencies():
+    """Installing docs dependencies"""
+    subprocess.check_call(
+        ["poetry", "add", "--group", "docs", "mkdocs"], stdout=subprocess.DEVNULL
+    )
+
+
+@print_progress
+def creating_dotenv():
+    """Creating .env file"""
+    subprocess.check_call(["touch", ".env"], stdout=subprocess.DEVNULL)
 
 
 @print_progress
@@ -154,9 +202,13 @@ def create_new_poetry_project():
             shutil.copy2(os.path.join(temp_folder_name, file_name), file_name)
     shutil.rmtree(temp_folder_name)
 
-    # mkdocs
-    repo_url = get_repo_url()
-    config_mkdocs(git_root_folder_name, repo_url)
+    install_basic_dependencies()
+    install_test_dependencies()
+    install_lint_dependencies()
+    install_dev_dependencies()
+    install_docs_dependencies()
+    creating_dotenv()
+    config_mkdocs(git_root_folder_name, get_repo_url())
 
 
 def main():
