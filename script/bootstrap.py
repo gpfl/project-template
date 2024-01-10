@@ -169,7 +169,8 @@ def install_dev_dependencies():
 def install_docs_dependencies():
     """Installing docs dependencies"""
     subprocess.check_call(
-        ["poetry", "add", "--group", "docs", "mkdocs"], stdout=subprocess.DEVNULL
+        ["poetry", "add", "--group", "docs", "mkdocs", "questionary"],
+        stdout=subprocess.DEVNULL,
     )
 
 

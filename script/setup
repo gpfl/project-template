@@ -5,12 +5,16 @@
 
 cd "$(dirname "$0")/.."
 
+chmod +x script/config
+
 . ./script/bootstrap
 
-printf '\n \n\e[0;1m bootstrap python script\n\e[0m'
-printf ' ---------------------------- \n'
+printf '\n \n\e[0;1m bootstrapping the python project\n\e[0m'
+printf ' -------------------------------- \n'
 
 python -m script.bootstrap
 
-# poetry config virtualenvs.in-project true
-# poetry install --no-root
+printf '\n \n\e[0;1m additional configuration \n\e[0m'
+printf ' ------------------------ \n'
+
+script/config
