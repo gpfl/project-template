@@ -144,7 +144,8 @@ def install_basic_dependencies():
 def install_test_dependencies():
     """Installing test dependencies"""
     subprocess.check_call(
-        ["poetry", "add", "--group", "test", "pytest"], stdout=subprocess.DEVNULL
+        ["poetry", "add", "--group", "test", "pytest", "hypothesis"],
+        stdout=subprocess.DEVNULL,
     )
 
 
