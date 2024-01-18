@@ -3,18 +3,20 @@
 # script/setup: Resolve all dependencies that the application requires to
 #                   run.
 
-cd "$(dirname "$0")/.."
+main(){
+    chmod +x script/config
 
-chmod +x script/config
+    . ./script/bootstrap
 
-. ./script/bootstrap
+    printf '\n\e[0;1m bootstrapping the python project\n\e[0m'
+    printf ' -------------------------------- \n'
 
-printf '\n \n\e[0;1m bootstrapping the python project\n\e[0m'
-printf ' -------------------------------- \n'
+    python3 -m script.bootstrap
 
-python -m script.bootstrap
+    printf '\n\e[0;1m additional configuration \n\e[0m'
+    printf ' ------------------------ \n'
 
-printf '\n \n\e[0;1m additional configuration \n\e[0m'
-printf ' ------------------------ \n'
+    script/config
+}
 
-script/config
+main "$@"
