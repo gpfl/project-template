@@ -3,89 +3,81 @@
 # script/bootstrap: Resolve all dependencies that the application requires to
 #                   run.
 
-check_installed()
-{
-if ! which "$1" &> /dev/null;
-then
-    printf "  \e[31;1m❌ %s is not installed\n\e[0m" "$1"
-    return 1
-else
-    printf "  \e[32;1m✅ %s is installed\n\e[0m" "$1"
-    return 0
-fi
+check_installed() {
+    for app in "$@"
+    do
+        if ! which "$app" &> /dev/null
+        then
+            printf "  \e[31;1m❌ %s is not installed\n\e[0m" "$app"
+        else
+            printf "  \e[32;1m✅ %s is installed\n\e[0m" "$app"
+        fi
+    done
 }
 
-
-printf '\n\e[0;1m bootstraping the environment\n\e[0m'
-printf ' ---------------------------- \n'
-
-check_installed brew
-brew_check=$?
-check_installed pyenv
-pyenv_check=$?
-check_installed poetry
-poetry_check=$?
-
-sleep 2
-
-if [[ brew_check -ne 0 ]]; then
-    printf "\ndo you want to install brew? (y/n) "
-    read -r answer
-    if [ "$answer" != "${answer#[Yy]}" ] ;then
-        echo -e "Yes\n"
+install_command(){
+    case "$1" in
+    "brew")
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-        sleep 2
-    else
-        echo -e "No\n"
-    fi
-fi
-
-
-if [[ pyenv_check -ne 0 ]]; then
-    printf "\ndo you want to install pyenv? (y/n) "
-    read -r answer
-    if [ "$answer" != "${answer#[Yy]}" ] ;then
-        echo -e "Yes\n"
-
-        # brew update and install pyenv
-        brew update
-        brew install pyenv
+        ;;
+    "pyenv")
+        brew update && brew install pyenv
 
         # shellcheck disable=SC2016
         { echo 'export PYENV_ROOT="$HOME/.pyenv"';
-         echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"';
-         echo 'eval "$(pyenv init -)"'; } >> ~/.zshrc
-
-        sleep 2
-    else
-        echo -e "No\n"
-    fi
-fi
-
-
-# shellcheck source=/dev/null
-source "$HOME/.zshrc"
-
-# which python version
-printf "\nselect a \e[1mpython version\e[0m for the project (e.g, 3.10): "
-read -r pyans
-echo "$pyans" > .python-version
-printf "\n"
-# run pyenv to install the .python-version
-pyenv install
-
-if [[ poetry_check -ne 0 ]]; then
-    printf "\ndo you want to install poetry? (y/n) "
-    read -r answer
-    if [ "$answer" != "${answer#[Yy]}" ] ;then
-        echo -e "Yes\n"
-
-        # install poetry using pip
+        echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"';
+        echo 'eval "$(pyenv init -)"'; } >> ~/.zshrc
+        ;;
+    "poetry")
         pip install poetry
+        ;;
+    esac
+}
 
-        sleep 2
-    else
-        echo -e "No\n"
+install_package(){
+    if ! which "$1" &> /dev/null
+    then
+        printf "\ndo you want to install %s? (y/n) " "$1"
+        read -r answer
+        if [ "$answer" != "${answer#[Yy]}" ] ;then
+            echo -e "Yes\n"
+            install_command "$1"
+            sleep 2
+        else
+            echo -e "No\n"
+        fi
     fi
-fi
+
+}
+
+config_python(){
+
+    # which python version
+    printf "\nselect a \e[1mpython version\e[0m for the project (e.g, 3.10): "
+    read -r pyans
+    echo "$pyans" > .python-version
+    printf "\n"
+
+    # run pyenv to install the .python-version
+    pyenv install
+}
+
+main(){
+    printf '\n\e[0;1m bootstraping the environment\n\e[0m'
+    printf ' ---------------------------- \n'
+    check_installed brew pyenv poetry
+
+    sleep 2
+
+    install_package brew
+    install_package pyenv
+
+    # shellcheck source=/dev/null
+    source "$HOME/.zshrc"
+
+    python_config
+
+    install_package poetry
+}
+
+main "$@"
