@@ -75,7 +75,7 @@ def check_install(tool, installation_method):
 
 
 @print_progress
-def get_git_root_folder_name():
+def get_git_root_folder():
     """Getting the name of the git root folder"""
     try:
         git_root = (
@@ -83,7 +83,7 @@ def get_git_root_folder_name():
             .decode("utf-8")
             .strip()
         )
-        return Path(git_root).name
+        return Path(git_root)
 
     except subprocess.CalledProcessError:
         color_print("Not in a git repository", "red")
@@ -182,32 +182,69 @@ def creating_dotenv():
 
 
 @print_progress
-def create_new_poetry_project():
-    """Initialize a poetry project, .gitignore and mkdocs"""
-    git_root_folder_name = get_git_root_folder_name()
+def finish_folders(root):
+    """Creating internal files and folders for the source code"""
 
-    get_gitignore()
+    project_folder = root.name.replace("-", "_")
 
+    struct = {
+        "data/raw": None,
+        "data/final": None,
+        "reports/figures": None,
+        f"{project_folder}/data": ["make.py"],
+        f"{project_folder}/features": ["build.py"],
+        f"{project_folder}/models": ["train.py", "predict.py"],
+        f"{project_folder}/visuals": ["show.py"],
+    }
+
+    for dir, files in struct.items():
+        p = root / dir
+        p.mkdir(parents=True, exist_ok=True)
+        if files:
+            for file in files:
+                f = p / file
+                f.touch()
+
+
+@print_progress
+def reorganize_folders(root_name, temp="temp"):
+    """Reorganizing project folders"""
+    shutil.copytree(root_name, temp, dirs_exist_ok=True)
+    shutil.rmtree(root_name)
+    files = os.listdir(temp)
+    for file_name in files:
+        if os.path.isdir(os.path.join(temp, file_name)):
+            shutil.copytree(os.path.join(temp, file_name), file_name)
+        else:
+            shutil.copy2(os.path.join(temp, file_name), file_name)
+    shutil.rmtree(temp)
+
+
+@print_progress
+def config_poetry(root_name):
     subprocess.check_call(
         ["poetry", "config", "virtualenvs.in-project", "true"],
         stdout=subprocess.DEVNULL,
     )
+    subprocess.check_call(["poetry", "new", root_name], stdout=subprocess.DEVNULL)
 
-    if git_root_folder_name:
-        subprocess.check_call(
-            ["poetry", "new", git_root_folder_name], stdout=subprocess.DEVNULL
-        )
 
-    temp_folder_name = "temp"
-    shutil.copytree(git_root_folder_name, temp_folder_name, dirs_exist_ok=True)
-    shutil.rmtree(git_root_folder_name)
-    files = os.listdir(temp_folder_name)
-    for file_name in files:
-        if os.path.isdir(os.path.join(temp_folder_name, file_name)):
-            shutil.copytree(os.path.join(temp_folder_name, file_name), file_name)
-        else:
-            shutil.copy2(os.path.join(temp_folder_name, file_name), file_name)
-    shutil.rmtree(temp_folder_name)
+@print_progress
+def create_new_poetry_project():
+    """Initialize a poetry project, .gitignore and mkdocs"""
+
+    get_gitignore()
+
+    git_root_folder = get_git_root_folder()
+
+    try:
+        git_root_folder_name = git_root_folder.name
+    except NameError:
+        sys.exit(1)
+
+    config_poetry(git_root_folder_name)
+    reorganize_folders(git_root_folder_name)
+    finish_folders(git_root_folder)
 
     install_basic_dependencies()
     install_test_dependencies()

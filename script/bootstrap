@@ -75,7 +75,7 @@ main(){
     # shellcheck source=/dev/null
     source "$HOME/.zshrc"
 
-    python_config
+    config_python
 
     install_package poetry
 }
